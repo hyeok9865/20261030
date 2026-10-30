@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Growth Lab · PNU 할로윈 나이트</title>
+  <meta name="description" content="퍼널 상관관계 분석, 병목 가설, A/B 테스트 설계와 통계 검정 결과">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/dashboard.css">
+  <link rel="stylesheet" href="assets/lab.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='24' fill='%230b0710'/%3E%3Crect x='20' y='54' width='12' height='26' rx='3' fill='%238b5cf6'/%3E%3Crect x='44' y='38' width='12' height='42' rx='3' fill='%23ff7a18'/%3E%3Crect x='68' y='24' width='12' height='56' rx='3' fill='%234ade80'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div class="dash-bg" aria-hidden="true"></div>
+
+  <header class="dash-nav">
+    <a class="dash-brand" href="index.html">
+      <span class="dash-mark" aria-hidden="true">
+        <svg viewBox="0 0 100 100"><rect x="18" y="56" width="14" height="26" rx="4" fill="currentColor"/><rect x="43" y="38" width="14" height="44" rx="4" fill="currentColor"/><rect x="68" y="22" width="14" height="60" rx="4" fill="currentColor"/></svg>
+      </span>
+      <span class="dash-brand-text">PNU<em>GROWTH LAB</em></span>
+    </a>
+    <div class="dash-nav-right">
+      <span class="live-badge"><i></i> EXPERIMENT</span>
+      <a href="dashboard.html" class="btn btn-ghost btn-sm">대시보드</a>
+      <a href="index.html" class="btn btn-ghost btn-sm">이벤트 페이지</a>
+    </div>
+  </header>
+
+  <main class="dash lab">
+    <section class="lab-hero">
+      <div class="lab-hero-copy">
+        <p class="eyebrow">GROWTH LAB · 2026 HALLOWEEN</p>
+        <h1>병목을 찾고,<br><span class="grad">실험으로 증명합니다</span></h1>
+        <p class="lab-sub">2026data_middle의 분석 방식 — 근거 수집 → 상관 패턴 → 한계 명시 — 을 이벤트 퍼널에 적용했습니다. 데이터로 병목을 찾고, 가설을 세우고, A/B 테스트로 검증합니다.</p>
+      </div>
+      <div class="lab-actions">
+        <div class="segmented" role="group" aria-label="분석 기간">
+          <button type="button" data-period="7">7일</button>
+          <button type="button" data-period="14" class="is-active">14일</button>
+          <button type="button" data-period="30">30일</button>
+        </div>
+        <button type="button" class="btn btn-ghost btn-sm" id="refresh-btn">새로고침</button>
+        <button type="button" class="btn btn-primary btn-sm" id="seed-btn">실험 데이터 생성</button>
+      </div>
+    </section>
+
+    <div class="meta-strip">
+      <span>분석 표본 <strong id="sample-label">-</strong></span>
+      <span>기간 <strong id="range-label">-</strong></span>
+      <span>마지막 업데이트 <strong id="updated-at">-</strong></span>
+      <span>방식 <strong>point-biserial r · two-proportion z-test</strong></span>
+    </div>
+
+    <div class="error-banner" id="error-banner" hidden></div>
+    <div class="notice-banner" id="notice-banner">
+      실험 결과는 <strong>시뮬레이션 파일럿</strong>입니다. 실제 트래픽이 쌓이면 같은 파이프라인으로 자동 갱신되며, 실트래픽 표본은 결과 카드에 함께 표시됩니다.
+    </div>
+
+    <section class="method-strip">
+      <div class="method-step"><span>01</span><strong>수집</strong><p>익명 세션 ID로 page_view · section_view · click · checkout_open · purchase 적재</p></div>
+      <div class="method-step"><span>02</span><strong>피처화</strong><p>세션 단위로 구매 · 도달 단계 · 클릭 수 · 디바이스 · 유입 · 시간대 집계</p></div>
+      <div class="method-step"><span>03</span><strong>진단</strong><p>퍼널 낙차 + 점이연 상관 + 세그먼트 2-비율 검정으로 병목 특정</p></div>
+      <div class="method-step"><span>04</span><strong>실험</strong><p>세션 50/50 배정, SRM · 검정력 · 신뢰구간으로 B안 판정</p></div>
+    </section>
+
+    <section class="kpi-grid lab-kpi" id="lab-kpis" aria-label="분석 요약"></section>
+
+    <section class="lab-grid">
+      <article class="panel lab-funnel-panel">
+        <header class="panel-head">
+          <div>
+            <h2>병목 진단</h2>
+            <p>세션 기준 누적 퍼널 · 이전 단계 대비 이탈</p>
+          </div>
+          <span class="panel-chip" id="funnel-chip">-</span>
+        </header>
+        <div id="lab-funnel" class="funnel"></div>
+        <p class="panel-note">퍼널은 세션 단위 누적 도달입니다. 상위 단계를 건너뛴 세션도 이전 단계를 통과한 것으로 계산합니다.</p>
+      </article>
+
+      <article class="panel lab-bottleneck-panel">
+        <header class="panel-head">
+          <div>
+            <h2>최대 병목</h2>
+            <p>가장 큰 낙차 구간과 근거</p>
+          </div>
+          <span class="panel-chip" id="bottleneck-chip">-</span>
+        </header>
+        <div id="bottleneck"></div>
+      </article>
+
+      <article class="panel lab-corr-panel">
+        <header class="panel-head">
+          <div>
+            <h2>상관관계 분석</h2>
+            <p>구매(0/1)와 세션 피처의 점이연 상관 · 정규근사 p</p>
+          </div>
+          <span class="panel-chip" id="corr-n">-</span>
+        </header>
+        <div class="corr-grid" id="correlations"></div>
+        <div class="corr-trap" id="corr-trap" hidden></div>
+      </article>
+
+      <article class="panel lab-seg-panel">
+        <header class="panel-head">
+          <div>
+            <h2>세그먼트 전환율</h2>
+            <p>각 세그먼트 vs 나머지 · 2-비율 z-test</p>
+          </div>
+        </header>
+        <div class="seg-table-wrap">
+          <table class="seg-table">
+            <thead>
+              <tr><th>세그먼트</th><th>세션</th><th>구매</th><th>CVR</th><th>차이</th><th>p</th></tr>
+            </thead>
+            <tbody id="segment-body"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="lab-section" id="hypotheses">
+      <div class="lab-section-head">
+        <p class="eyebrow">HYPOTHESES</p>
+        <h2>데이터가 가리키는 세 가지 가설</h2>
+        <p>병목의 원인을 가격 프레이밍, 결제 마찰, 사회적 증거로 나눠 검증했습니다.</p>
+      </div>
+      <div class="hypo-grid" id="hypo-grid"></div>
+      <p class="ref-note"><strong>2026data_middle 연결</strong> 리뷰 데이터에서 가격과 만족도는 비례하지 않았습니다. 그래서 이번 실험은 가격의 절대 수준이 아니라 <strong>제시 방식</strong>을 바꿉니다.</p>
+    </section>
+
+    <section class="lab-section">
+      <div class="lab-section-head">
+        <p class="eyebrow">EXPERIMENT DESIGN</p>
+        <h2>A/B 테스트 설계</h2>
+        <p>사전 등록한 1차 지표 · 가드레일 · 표본 크기. 알파 5%, 검정력 80%, 양측 검정.</p>
+      </div>
+      <div class="exp-grid" id="design-grid"></div>
+    </section>
+
+    <section class="lab-section">
+      <div class="lab-section-head">
+        <p class="eyebrow">RESULTS</p>
+        <h2>실행 결과</h2>
+        <p id="result-note">시뮬레이션 파일럿 결과입니다. 실제 트래픽 결과는 동일한 카드에 자동 반영됩니다.</p>
+      </div>
+      <div class="result-grid" id="result-grid"></div>
+    </section>
+
+    <section class="lab-section">
+      <div class="limit-grid">
+        <article class="panel">
+          <header class="panel-head">
+            <div>
+              <h2>이 분석의 한계</h2>
+              <p>2026data_middle과 같은 방식으로 명시</p>
+            </div>
+          </header>
+          <ul class="limit-list">
+            <li><strong>시뮬레이션 파일럿</strong> 실험 표본은 효과 크기를 설계값으로 주입한 합성 세션입니다. 실제 사용자 반응이 아닙니다.</li>
+            <li><strong>상관 ≠ 인과</strong> 세그먼트 차이는 유입 의도, 시간대, 기기 성능 같은 교란 변수를 통제하지 않았습니다.</li>
+            <li><strong>활동 시간의 함정</strong> 활동 시간 r=0.84는 구매 이벤트가 세션 길이를 늘리는 역인과입니다. 인사이트에서 제외했습니다.</li>
+            <li><strong>다중비교</strong> 사전 등록한 2개 실험만 검정했습니다. 실험을 추가하면 보정이 필요합니다.</li>
+            <li><strong>외부 타당성</strong> 행사 D-1, 14일 표본입니다. 학기·요일·날씨에 따라 효과가 달라질 수 있습니다.</li>
+            <li><strong>PII</strong> 이름·연락처는 수집하지 않습니다. 모든 지표는 익명 세션 단위입니다.</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <header class="panel-head">
+            <div>
+              <h2>다음 액션</h2>
+              <p>데이터가 말하는 의사결정</p>
+            </div>
+          </header>
+          <ol class="action-list">
+            <li><strong>B안 배포</strong> 1인당 가격 표기와 원클릭 예매를 프로덕션에 적용합니다.</li>
+            <li><strong>H3 실험</strong> 잔여 수량·마감 카운트다운을 추가한 EXP-03을 설계합니다.</li>
+            <li><strong>실트래픽 확보</strong> 변형당 1,200명에 도달할 때까지 실험을 유지합니다.</li>
+            <li><strong>가드레일 모니터링</strong> 원클릭 B안의 객단가 -4.9%를 2주간 추적합니다.</li>
+            <li><strong>서버 배정</strong> 로그인 사용자 단위 실험과 서버 측 배정으로 확장합니다.</li>
+          </ol>
+        </article>
+      </div>
+    </section>
+
+    <footer class="dash-foot">
+      <p>데이터 파이프라인 · <strong>GitHub Pages + Supabase Postgres</strong> · RLS insert-only, 집계는 security definer RPC</p>
+      <p>분석 스타일 참고 · <a href="https://github.com/hyeok9865/2026data_middle" target="_blank" rel="noopener" style="color:var(--orange-soft)">2026data_middle</a></p>
+    </footer>
+  </main>
+
+  <script src="assets/config.js"></script>
+  <script src="assets/supabase.js"></script>
+  <script src="assets/lab.js"></script>
+</body>
+</html>
